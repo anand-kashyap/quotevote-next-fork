@@ -168,8 +168,12 @@ function PostCardComponent({
   const username = creator?.username || 'Anonymous'
   const upvoteCount = approvedBy?.length || 0
   const downvoteCount = rejectedBy?.length || 0
-  const borderColor =
-    ACTIVITY_BORDER[(activityType || 'POSTED').toUpperCase()] ?? '#56b3ff'
+  const borderColor = (() => {
+    const up = approvedBy?.length ?? 0
+    const down = rejectedBy?.length ?? 0
+    if (up === 0 && down === 0) return ACTIVITY_BORDER[(activityType || 'POSTED').toUpperCase()] ?? '#56b3ff'
+    return down > up ? '#ff6060' : '#56b3ff'
+  })()
 
   const formattedDate = useMemo(
     () =>
