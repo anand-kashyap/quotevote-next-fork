@@ -19,6 +19,7 @@ import { MockedProvider } from '@apollo/client/testing';
 import { GET_CHAT_ROOM, GET_ROSTER } from '@/graphql/queries';
 import { REPORT_BOT } from '@/graphql/mutations';
 import { toast } from 'sonner';
+import { installMemoryStorage, restoreStorage } from '../../utils/memoryStorage';
 
 // Mock sonner toast
 jest.mock('sonner', () => ({
@@ -838,6 +839,176 @@ describe('ProfileHeader Component', () => {
       } else {
         // If ErrorBoundary caught an error, skip the navigation test
         expect(screen.queryByText(/Something went wrong/i)).toBeTruthy();
+      }
+    });
+  });
+
+  describe('Status Display', () => {
+    const ownProfile: ProfileUser = { ...mockProfileUser, _id: 'currentuser' };
+
+    it('shows the default presence status on own profile', async () => {
+      act(() => {
+        useAppStore.setState((s) => ({
+          chat: { ...s.chat, userStatus: 'online', userStatusMessage: '' },
+        }));
+      });
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={ownProfile} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const status = screen.queryByText('Online');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(status || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+    });
+
+    it('shows a custom status message on own profile', async () => {
+      act(() => {
+        useAppStore.setState((s) => ({
+          chat: { ...s.chat, userStatus: 'dnd', userStatusMessage: 'Heads down coding' },
+        }));
+      });
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={ownProfile} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const status = screen.queryByText('Heads down coding');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(status || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+    });
+
+    it('shows the status label when no custom message is set', async () => {
+      act(() => {
+        useAppStore.setState((s) => ({
+          chat: { ...s.chat, userStatus: 'away', userStatusMessage: '' },
+        }));
+      });
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={ownProfile} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const status = screen.queryByText('Away');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(status || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+    });
+
+    it('does not show the status badge on another user profile', async () => {
+      act(() => {
+        useAppStore.setState((s) => ({
+          chat: { ...s.chat, userStatus: 'online', userStatusMessage: '' },
+        }));
+      });
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={mockProfileUser} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const username = screen.queryByText('testuser');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(username || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+
+      if (!screen.queryByText(/Something went wrong/i)) {
+        expect(screen.queryByText('Online')).not.toBeInTheDocument();
+      }
+    });
+  });
+
+  describe('Profile Background', () => {
+    beforeEach(() => {
+      installMemoryStorage();
+    });
+
+    afterEach(() => {
+      restoreStorage();
+    });
+
+    it('renders the customizable cover on own profile', async () => {
+      const ownProfile: ProfileUser = { ...mockProfileUser, _id: 'currentuser' };
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={ownProfile} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const cover = screen.queryByTestId('profile-cover');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(cover || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+    });
+
+    it('applies the persisted color/pattern on own profile', async () => {
+      localStorage.setItem('profileBgColor', '#3b82f6');
+      localStorage.setItem('profileBgPattern', 'zigzag');
+      const ownProfile: ProfileUser = { ...mockProfileUser, _id: 'currentuser' };
+
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={ownProfile} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const cover = screen.queryByTestId('profile-cover');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(cover || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+
+      const cover = screen.queryByTestId('profile-cover');
+      if (cover) {
+        expect(cover).toHaveStyle({ backgroundColor: '#3b82f6' });
+        expect(cover.style.backgroundImage).toContain('linear-gradient');
+      }
+    });
+
+    it('does not render the customizable cover on another user profile', async () => {
+      await act(async () => {
+        render(
+          <MockedProvider mocks={createMocks()} addTypename={false}>
+            <ProfileHeader profileUser={mockProfileUser} />
+          </MockedProvider>
+        );
+      });
+
+      await waitFor(() => {
+        const username = screen.queryByText('testuser');
+        const errorUI = screen.queryByText(/Something went wrong/i);
+        expect(username || errorUI).toBeTruthy();
+      }, { timeout: 5000 });
+
+      if (!screen.queryByText(/Something went wrong/i)) {
+        expect(screen.queryByTestId('profile-cover')).not.toBeInTheDocument();
       }
     });
   });

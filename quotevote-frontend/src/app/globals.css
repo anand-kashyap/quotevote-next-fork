@@ -790,17 +790,14 @@ body {
   box-shadow: var(--nb-shadow-lg) !important;
 }
 
-/* Rotate shadow colors across the feed for variety */
-.neo-brutalism .group\/card:nth-of-type(5n+1) { box-shadow: 5px 5px 0 0 var(--nb-green) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+2) { box-shadow: 5px 5px 0 0 var(--nb-pink) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+3) { box-shadow: 5px 5px 0 0 var(--nb-blue) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+4) { box-shadow: 5px 5px 0 0 var(--nb-yellow) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n)   { box-shadow: 5px 5px 0 0 var(--nb-purple) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+1):hover { box-shadow: 8px 8px 0 0 var(--nb-green) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+2):hover { box-shadow: 8px 8px 0 0 var(--nb-pink) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+3):hover { box-shadow: 8px 8px 0 0 var(--nb-blue) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n+4):hover { box-shadow: 8px 8px 0 0 var(--nb-yellow) !important; }
-.neo-brutalism .group\/card:nth-of-type(5n):hover   { box-shadow: 8px 8px 0 0 var(--nb-purple) !important; }
+/* Shadow color reflects vote sentiment, matching the default theme:
+   support → green, disagree → red, neutral → blue */
+.neo-brutalism .group\/card[data-sentiment="support"]  { box-shadow: 5px 5px 0 0 var(--nb-green) !important; }
+.neo-brutalism .group\/card[data-sentiment="disagree"] { box-shadow: 5px 5px 0 0 var(--nb-coral) !important; }
+.neo-brutalism .group\/card[data-sentiment="neutral"]  { box-shadow: 5px 5px 0 0 var(--nb-blue) !important; }
+.neo-brutalism .group\/card[data-sentiment="support"]:hover  { box-shadow: 8px 8px 0 0 var(--nb-green) !important; }
+.neo-brutalism .group\/card[data-sentiment="disagree"]:hover { box-shadow: 8px 8px 0 0 var(--nb-coral) !important; }
+.neo-brutalism .group\/card[data-sentiment="neutral"]:hover  { box-shadow: 8px 8px 0 0 var(--nb-blue) !important; }
 
 /* Chat message bubbles — flatten gradients, keep shape but add borders */
 .neo-brutalism [class*="rounded-[20px_20px_20px_6px]"],

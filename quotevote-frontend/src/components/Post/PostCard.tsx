@@ -215,13 +215,14 @@ function PostCardComponent({
   const upvoteCount = localApprovedBy.length
   const downvoteCount = localRejectedBy.length
 
-  const cardTheme = (() => {
+  const sentiment: 'support' | 'disagree' | 'neutral' = (() => {
     const up = localApprovedBy.length
     const down = localRejectedBy.length
-    if (up > 0 && up > down) return CARD_THEMES.support
-    if (down > 0 && down > up) return CARD_THEMES.disagree
-    return CARD_THEMES.neutral
+    if (up > 0 && up > down) return 'support'
+    if (down > 0 && down > up) return 'disagree'
+    return 'neutral'
   })()
+  const cardTheme = CARD_THEMES[sentiment]
 
   const formattedDate = useMemo(
     () =>
@@ -267,6 +268,7 @@ function PostCardComponent({
       tabIndex={0}
       role="article"
       aria-label={title || 'Post'}
+      data-sentiment={sentiment}
     >
       {/* ── Vote + interactions row ── */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2.5 border-b border-border/30">
