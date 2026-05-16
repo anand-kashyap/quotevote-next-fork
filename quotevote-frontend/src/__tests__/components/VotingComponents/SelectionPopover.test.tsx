@@ -93,6 +93,14 @@ describe('SelectionPopover', () => {
     expect(popover).toBeInTheDocument()
   })
 
+  it('renders above the post sticky action bar (z-index > 10) by default', () => {
+    const { container } = render(
+      <SelectionPopover {...defaultProps} showPopover={true} />,
+    )
+    const popover = container.querySelector('#selectionPopover') as HTMLElement
+    expect(Number(popover.style.zIndex)).toBeGreaterThan(10)
+  })
+
   it('applies custom styles', () => {
     const customStyle = { zIndex: 999 }
     const { container } = render(

@@ -180,7 +180,9 @@ export default function SelectionPopover({
         top: popoverBox.top,
         left: popoverBox.left || undefined,
         right: popoverBox.right || undefined,
-        zIndex: 1,
+        // Must sit above the post's sticky action bar (Disagree/Support,
+        // z-10 in Post.tsx) so the selection interaction isn't hidden behind it.
+        zIndex: 50,
         ...style,
       }}
       onMouseEnter={handleMouseEnter}
