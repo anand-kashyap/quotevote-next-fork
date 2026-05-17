@@ -161,6 +161,10 @@ export default function DashboardLayout({
   const isAdmin = !!user?.admin;
   const username =
     (typeof user?.username === 'string' ? user.username : undefined) || '';
+  // Default-avatar seed — matches the profile / post card / post detail
+  // (display name, falling back to username) so an unset avatar is identical.
+  const avatarSeed =
+    (typeof user?.name === 'string' && user.name) || username || undefined;
 
   const { data: notifData } = useQuery<{ notifications: Array<{ _id: string; status: string }> }>(
     GET_NOTIFICATIONS,
@@ -272,7 +276,7 @@ export default function DashboardLayout({
                   >
                     <DisplayAvatar
                       avatar={user?.avatar as string | Record<string, unknown> | undefined}
-                      username={username || undefined}
+                      username={avatarSeed}
                       size={28}
                       className="size-7 flex-shrink-0"
                     />
@@ -287,7 +291,7 @@ export default function DashboardLayout({
                     <div className="px-4 pb-3">
                       <DisplayAvatar
                         avatar={user?.avatar as string | Record<string, unknown> | undefined}
-                        username={username || undefined}
+                        username={avatarSeed}
                         size={64}
                         className="size-16 -mt-8 ring-4 ring-card shadow-md"
                       />
@@ -462,7 +466,7 @@ export default function DashboardLayout({
           {loggedIn ? (
             <DisplayAvatar
               avatar={user?.avatar as string | Record<string, unknown> | undefined}
-              username={username || undefined}
+              username={avatarSeed}
               size={24}
               className={cn(
                 'size-6 transition-all',
