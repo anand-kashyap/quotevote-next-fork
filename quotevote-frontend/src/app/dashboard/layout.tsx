@@ -24,6 +24,8 @@ import { useAppStore } from '@/store';
 import { getApolloClient } from '@/lib/apollo';
 import { removeToken } from '@/lib/auth';
 import { useAuthModal } from '@/context/AuthModalContext';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { routeHasPersistentChatPanel } from '@/lib/utils/chatLayout';
 import { usePresenceHeartbeat } from '@/hooks/usePresenceHeartbeat';
 import { usePresenceSubscription } from '@/hooks/usePresenceSubscription';
 import { useRosterManagement } from '@/hooks/useRosterManagement';
@@ -66,8 +68,20 @@ function DashboardClient() {
 }
 
 function ChatPanel() {
+  const pathname = usePathname();
   const chatOpen = useAppStore((s) => s.chat.open);
   const setChatOpen = useAppStore((s) => s.setChatOpen);
+  // Tailwind `xl` breakpoint — the width at which the refined persistent
+  // messaging panel (DashboardSidebars / explore) becomes visible.
+  const isXlUp = useMediaQuery('(min-width: 1280px)');
+
+  // These routes render the refined messaging panel persistently on the
+  // right at xl+. Sliding the old drawer in there would just duplicate it,
+  // so suppress the drawer and let the persistent panel display the chat.
+  // Below xl (no persistent panel) and on other routes the drawer stays so
+  // chat remains reachable.
+  if (routeHasPersistentChatPanel(pathname) && isXlUp) return null;
+
   return (
     <Sheet open={chatOpen} onOpenChange={setChatOpen}>
       <SheetContent side="right" className="w-full sm:w-[400px] p-0">

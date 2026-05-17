@@ -7,6 +7,7 @@ import { MessageCircle, Flag, MoreHorizontal, Pencil } from 'lucide-react';
 import { useAppStore } from '@/store';
 import { toast } from 'sonner';
 import type { ProfileUser } from '@/types/profile';
+import type { StagedChatRoom } from '@/types/chat';
 import { GET_CHAT_ROOM, GET_ROSTER } from '@/graphql/queries';
 import { REPORT_BOT } from '@/graphql/mutations';
 import { DisplayAvatar } from '@/components/DisplayAvatar';
@@ -62,6 +63,7 @@ export function ProfileHeader({ profileUser }: ProfileHeaderProps) {
 
   const {
     username,
+    name,
     _id,
     _followingId = [],
     _followersId = [],
@@ -136,10 +138,25 @@ export function ProfileHeader({ profileUser }: ProfileHeaderProps) {
       return;
     }
 
-    if (room) {
+    if (room && room._id) {
+      // Existing DM — open the conversation in the right-side panel.
       setSelectedChatRoom(room._id);
-      setChatOpen(true);
+    } else {
+      // No DM yet — stage a new conversation so the right-side MessageBox
+      // opens the compose view directly (same flow as the chat buddy list).
+      const staged: StagedChatRoom = {
+        _id: null,
+        title: name || username || 'Chat',
+        avatar:
+          typeof avatar === 'string'
+            ? avatar
+            : (avatar?.url ?? null),
+        messageType: 'USER',
+        users: [loggedInUserIdString, _id],
+      };
+      setSelectedChatRoom(staged);
     }
+    setChatOpen(true);
   };
 
   const [reportBot, { loading: reportLoading }] = useMutation(REPORT_BOT);
