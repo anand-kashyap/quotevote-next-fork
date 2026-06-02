@@ -11,8 +11,18 @@
  *      TypeScript modules").
  */
 
-import { buildSchema, GraphQLObjectType, GraphQLSchema, GraphQLString, printSchema } from 'graphql';
 import {
+  buildSchema,
+  GraphQLID,
+  GraphQLList,
+  GraphQLObjectType,
+  type GraphQLOutputType,
+  GraphQLSchema,
+  GraphQLString,
+  printSchema,
+} from 'graphql';
+import {
+  DateScalar,
   domainTypeDefs,
   domainTypes,
   // Named imports — each *Type comes from its own file.
@@ -27,6 +37,7 @@ import {
   DeletedVoteType,
   GroupType,
   MessageType,
+  ReadByDetailedEntryType,
   MessageRoomType,
   NotificationType,
   PaginationType,
@@ -112,6 +123,37 @@ describe('GraphQL domain typedefs (7.28 migration)', () => {
       }
     );
 
+    it('aligns migrated fields with the domain type contracts', () => {
+      const quoteFields = QuoteType.getFields();
+      expect(quoteFields.postId.type).toBe(GraphQLID);
+
+      const messageFields = MessageType.getFields();
+      expect(messageFields.readBy.type).toBeInstanceOf(GraphQLList);
+      expect((messageFields.readBy.type as GraphQLList<GraphQLOutputType>).ofType).toBe(
+        GraphQLString
+      );
+      expect(messageFields.readByDetailed.type).toBeInstanceOf(GraphQLList);
+      expect(
+        (messageFields.readByDetailed.type as GraphQLList<GraphQLOutputType>).ofType
+      ).toBe(ReadByDetailedEntryType);
+
+      const readByDetailedFields = ReadByDetailedEntryType.getFields();
+      expect(readByDetailedFields.userId.type).toBe(GraphQLString);
+      expect(readByDetailedFields.readAt.type).toBe(DateScalar);
+
+      const chatRoomFields = ChatRoomType.getFields();
+      expect(chatRoomFields.users.type).toBeInstanceOf(GraphQLList);
+      expect((chatRoomFields.users.type as GraphQLList<GraphQLOutputType>).ofType).toBe(
+        GraphQLString
+      );
+
+      const messageRoomFields = MessageRoomType.getFields();
+      expect(messageRoomFields.users.type).toBeInstanceOf(GraphQLList);
+      expect((messageRoomFields.users.type as GraphQLList<GraphQLOutputType>).ofType).toBe(
+        GraphQLString
+      );
+    });
+
     it('covers all 25 legacy typedef names', () => {
       expect(perFileCases).toHaveLength(LEGACY_TYPE_NAMES.length);
       const coveredNames = perFileCases.map(([n]) => n).sort();
@@ -145,6 +187,7 @@ describe('GraphQL domain typedefs (7.28 migration)', () => {
         'HeartbeatResponse',
         'BuddyWithPresence',
         'DeletedRoster',
+        'ReadByDetailedEntry',
         'TypingResponse',
         'PresenceStatus',
         'RosterStatus',

@@ -1,6 +1,7 @@
 import {
   GraphQLBoolean,
   GraphQLID,
+  GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLString,
@@ -8,12 +9,24 @@ import {
 } from 'graphql';
 import type { GraphQLContext } from '~/types/graphql';
 import type * as Common from '~/types/common';
-import { DateScalar, JSONScalar } from './scalars';
+import { DateScalar } from './scalars';
 import { UserType } from './User';
 
 interface MessageShape extends Common.Message {
   userAvatar?: string;
 }
+
+export const ReadByDetailedEntryType: GraphQLObjectType<
+  Common.ReadByDetailedEntry,
+  GraphQLContext
+> = new GraphQLObjectType<Common.ReadByDetailedEntry, GraphQLContext>({
+  name: 'ReadByDetailedEntry',
+  description: 'Per-user read receipt for a message.',
+  fields: (): GraphQLFieldConfigMap<Common.ReadByDetailedEntry, GraphQLContext> => ({
+    userId: { type: GraphQLString },
+    readAt: { type: DateScalar },
+  }),
+});
 
 export const MessageType: GraphQLObjectType<MessageShape, GraphQLContext> = new GraphQLObjectType<
   MessageShape,
@@ -37,7 +50,11 @@ export const MessageType: GraphQLObjectType<MessageShape, GraphQLContext> = new 
     mutation_type: { type: GraphQLString },
     deleted: { type: GraphQLBoolean },
     user: { type: UserType },
-    readBy: { type: JSONScalar, resolve: (m) => m.readBy ?? [] },
+    readBy: { type: new GraphQLList(GraphQLString), resolve: (m) => m.readBy ?? [] },
+    readByDetailed: {
+      type: new GraphQLList(ReadByDetailedEntryType),
+      resolve: (m) => m.readByDetailed ?? [],
+    },
   }),
 });
 

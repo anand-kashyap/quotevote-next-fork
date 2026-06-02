@@ -2,7 +2,7 @@
  * Custom GraphQL scalar types used by the domain schema.
  *
  * - `DateScalar`  -> bridges JS Date/string/number values (serialised as ISO string)
- * - `JSONScalar`  -> passthrough for arbitrary JSON blobs (avatar, readBy, users map, etc.)
+ * - `JSONScalar`  -> passthrough for arbitrary JSON blobs (avatar, settings, etc.)
  */
 
 import { GraphQLScalarType, Kind, type ValueNode } from 'graphql';

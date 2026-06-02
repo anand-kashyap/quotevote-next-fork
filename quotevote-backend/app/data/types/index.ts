@@ -26,7 +26,7 @@ import { PaginationType } from './Pagination';
 import { CommentType } from './Comment';
 import { ChatRoomType } from './ChatRooms';
 import { GroupType } from './Group';
-import { MessageType } from './Message';
+import { MessageType, ReadByDetailedEntryType } from './Message';
 import { MessageRoomType, PostDetailsType } from './MessageRoom';
 import { NotificationType } from './Notification';
 import { PostType } from './Post';
@@ -112,6 +112,7 @@ export const domainTypes: readonly GraphQLNamedType[] = [
   // Chat / messaging
   ChatRoomType,
   MessageType,
+  ReadByDetailedEntryType,
   MessageRoomType,
   PostDetailsType,
   // Soft-delete payloads

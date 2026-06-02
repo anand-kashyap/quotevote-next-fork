@@ -1,5 +1,6 @@
 import {
   GraphQLBoolean,
+  GraphQLID,
   GraphQLInt,
   GraphQLObjectType,
   GraphQLString,
@@ -25,13 +26,7 @@ export const QuoteType: GraphQLObjectType<QuoteShape, GraphQLContext> = new Grap
   fields: (): GraphQLFieldConfigMap<QuoteShape, GraphQLContext> => ({
     _id: { type: GraphQLString },
     created: { type: DateScalar },
-    postId: {
-      type: GraphQLInt,
-      resolve: (q) => {
-        const n = Number(q.postId);
-        return Number.isFinite(n) ? n : null;
-      },
-    },
+    postId: { type: GraphQLID },
     quote: { type: GraphQLString },
     quoted: { type: GraphQLString },
     quoter: { type: GraphQLString },

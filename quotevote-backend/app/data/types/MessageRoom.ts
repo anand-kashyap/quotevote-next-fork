@@ -44,7 +44,7 @@ export const MessageRoomType: GraphQLObjectType<MessageRoomShape, GraphQLContext
     description: 'Chat room (direct or group), aligned with Prisma MessageRoom.',
     fields: (): GraphQLFieldConfigMap<MessageRoomShape, GraphQLContext> => ({
       _id: { type: new GraphQLNonNull(GraphQLID) },
-      users: { type: JSONScalar, resolve: (r) => r.users ?? [] },
+      users: { type: new GraphQLList(GraphQLString), resolve: (r) => r.users ?? [] },
       messageType: { type: GraphQLString },
       created: { type: DateScalar },
       lastActivity: { type: DateScalar },

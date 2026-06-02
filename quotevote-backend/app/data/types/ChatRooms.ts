@@ -1,6 +1,7 @@
 import {
   GraphQLID,
   GraphQLInt,
+  GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLString,
@@ -8,7 +9,7 @@ import {
 } from 'graphql';
 import type { GraphQLContext } from '~/types/graphql';
 import type * as Common from '~/types/common';
-import { DateScalar, JSONScalar } from './scalars';
+import { DateScalar } from './scalars';
 import { UserType } from './User';
 
 interface ChatRoomShape extends Common.MessageRoom {
@@ -23,7 +24,7 @@ export const ChatRoomType: GraphQLObjectType<ChatRoomShape, GraphQLContext> = ne
   description: 'Lightweight chat-room list-view projection of a MessageRoom.',
   fields: (): GraphQLFieldConfigMap<ChatRoomShape, GraphQLContext> => ({
     _id: { type: new GraphQLNonNull(GraphQLID) },
-    users: { type: JSONScalar, resolve: (r) => r.users ?? [] },
+    users: { type: new GraphQLList(GraphQLString), resolve: (r) => r.users ?? [] },
     messageType: { type: GraphQLString },
     created: { type: DateScalar },
     unreadMessages: { type: GraphQLInt },
