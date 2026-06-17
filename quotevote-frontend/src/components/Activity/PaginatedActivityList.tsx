@@ -19,6 +19,7 @@ import {
 import { useAppStore } from '@/store'
 import useGuestGuard from '@/hooks/useGuestGuard'
 import { useRouter } from 'next/navigation'
+import { toAppPostUrl } from '@/lib/utils/sanitizeUrl'
 import type { PaginatedActivityListProps, ActivityEntity } from '@/types/activity'
 
 function LoadActivityCard({
@@ -123,16 +124,8 @@ function LoadActivityCard({
   const isLiked = currentUser?._id && typeof currentUser._id === 'string' ? bookmarkedBy.includes(currentUser._id) : false
 
   const handleCardClick = () => {
-    // Check if user is in guest mode
-    if (!ensureAuth()) {
-      // Redirect to search page for guest users
-      router.push('/search')
-      return
-    }
-
-    // For authenticated users, proceed with normal post navigation
     setSelectedPost(postId)
-    router.push(url.replace(/\?/g, ''))
+    router.push(toAppPostUrl(url.replace(/\?/g, '')))
   }
 
   return (

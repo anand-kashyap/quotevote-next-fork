@@ -35,6 +35,7 @@ import { useAppStore } from '@/store';
 import { SEARCH, GET_FEATURED_POSTS } from '@/graphql/queries';
 import { REQUEST_USER_ACCESS_MUTATION } from '@/graphql/mutations';
 import { useDebounce } from '@/hooks/useDebounce';
+import { toAppPostUrl } from '@/lib/utils/sanitizeUrl';
 import type { Post } from '@/types/post';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -1588,9 +1589,19 @@ function HeroSearch({ router }: HeroSearchProps) {
     if (e.key === 'Escape') setIsOpen(false);
   };
 
-  const handleResultClick = () => {
+  const handlePostClick = (item: ContentResult) => {
     setIsOpen(false);
-    router.push('/auths/login');
+    if (item.url) {
+      router.push(toAppPostUrl(item.url));
+      return;
+    }
+    router.push(`/dashboard/explore?q=${encodeURIComponent(item.title)}`);
+  };
+
+  const handleCreatorClick = (creator: CreatorResult) => {
+    setIsOpen(false);
+    const profileSlug = creator.username || creator._id;
+    router.push(`/dashboard/profile/${profileSlug}`);
   };
 
   return (
@@ -1695,7 +1706,7 @@ function HeroSearch({ router }: HeroSearchProps) {
                     <button
                       key={item._id}
                       type="button"
-                      onClick={handleResultClick}
+                      onClick={() => handlePostClick(item)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                     >
                       <div
@@ -1725,7 +1736,7 @@ function HeroSearch({ router }: HeroSearchProps) {
                     <button
                       key={creator._id}
                       type="button"
-                      onClick={handleResultClick}
+                      onClick={() => handleCreatorClick(creator)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center">
@@ -1750,7 +1761,10 @@ function HeroSearch({ router }: HeroSearchProps) {
               <div className="border-t border-gray-100 px-4 py-3">
                 <button
                   type="button"
-                  onClick={handleResultClick}
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push(`/dashboard/explore?q=${encodeURIComponent(debouncedQuery)}`);
+                  }}
                   className="text-sm font-medium transition-colors hover:underline"
                   style={{ color: 'var(--color-primary)' }}
                 >

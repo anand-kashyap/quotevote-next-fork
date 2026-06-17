@@ -208,7 +208,7 @@ function PostCardComponent({
     e.stopPropagation()
     const uname = creator?.username
     if (!uname) return
-    if (guestGuard()) router.push(`/dashboard/profile/${uname}`)
+    router.push(`/dashboard/profile/${uname}`)
   }
 
   const username = creator?.username || 'Anonymous'

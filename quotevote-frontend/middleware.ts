@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import {
+  isGuestReadableDashboardRoute,
+} from './src/lib/dashboard-routes';
 
 // Routes that authenticated users should be redirected away from
 const AUTH_ROUTES = ['/auths/login', '/auths/signup', '/auths/request-access', '/auths/forgot-password'];
@@ -27,24 +30,25 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('qv-token')?.value;
 
-  // Protect /dashboard/* — redirect to login if no token
   if (pathname.startsWith('/dashboard')) {
     if (!token) {
-      const loginUrl = new URL('/auths/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
+      if (!isGuestReadableDashboardRoute(pathname)) {
+        const loginUrl = new URL('/auths/login', request.url);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+
+      return NextResponse.next();
     }
 
-    // Admin-only route protection for /dashboard/control-panel
     if (pathname.startsWith('/dashboard/control-panel')) {
-      const payload = decodeJwtPayload(token);
+      const payload = token ? decodeJwtPayload(token) : null;
       if (!payload || payload.admin !== true) {
         return NextResponse.redirect(new URL('/dashboard/explore', request.url));
       }
     }
   }
 
-  // Redirect authenticated users away from auth pages (except always-accessible ones)
   if (pathname.startsWith('/auths')) {
     const isAlwaysAccessible = AUTH_ALWAYS_ACCESSIBLE.some((route) => pathname.startsWith(route));
     const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
