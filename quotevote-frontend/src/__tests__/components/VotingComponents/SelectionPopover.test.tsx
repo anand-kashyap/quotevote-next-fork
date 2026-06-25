@@ -189,7 +189,7 @@ describe('SelectionPopover', () => {
     expect(screen.queryByText('Test content')).not.toBeInTheDocument()
   })
 
-  it('handles mouse enter to expand selection', async () => {
+  it('does not alter selection or call onSelect when mouse enters the popover', async () => {
     const onSelect = jest.fn()
 
     render(
@@ -207,8 +207,8 @@ describe('SelectionPopover', () => {
       })
     }
 
-    // Should expand selection on mouse enter
-    expect(onSelect).toBeDefined()
+    // Hovering over the popup must NOT call onSelect or expand the selection
+    expect(onSelect).not.toHaveBeenCalled()
   })
 
   it('computes popover position correctly for desktop', () => {

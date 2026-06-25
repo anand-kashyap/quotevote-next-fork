@@ -116,21 +116,6 @@ export default function SelectionPopover({
     }, 100)
   }, [selectionChange])
 
-  const handleMouseEnter = useCallback(() => {
-    const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      // Expand to word boundary - use alternative method for Range
-      try {
-        range.setStart(range.startContainer, Math.max(0, range.startOffset - 1))
-        range.setEnd(range.endContainer, range.endOffset + 1)
-      } catch {
-        // If expansion fails, use selection as-is
-      }
-      onSelect(selection)
-    }
-  }, [onSelect])
-
   useEffect(() => {
     if (showPopover === false) {
       clearSelection()
@@ -200,7 +185,6 @@ export default function SelectionPopover({
         zIndex: 50,
         ...style,
       }}
-      onMouseEnter={handleMouseEnter}
     >
       {showPopover && children}
     </div>,
