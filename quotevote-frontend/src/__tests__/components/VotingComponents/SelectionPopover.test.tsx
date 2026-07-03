@@ -65,8 +65,12 @@ describe('SelectionPopover', () => {
     expect(screen.queryByText('Test content')).not.toBeInTheDocument()
   })
 
-  it('calls onDeselect when selection is cleared', () => {
+  it('calls onDeselect when selection is cleared', async () => {
     const onDeselect = jest.fn()
+
+    // Override getSelection to return null (cleared)
+    global.window.getSelection = jest.fn(() => null)
+
     render(
       <SelectionPopover
         {...defaultProps}
@@ -75,46 +79,45 @@ describe('SelectionPopover', () => {
       />,
     )
 
-    // Simulate clearing selection
-    const selection = window.getSelection()
-    if (selection) {
-      selection.removeAllRanges()
-    }
+    // Trigger a pointermove so selectionChange runs with no active selection
+    await act(async () => {
+      const target = document.querySelector('[data-selectable]')
+      if (target) target.dispatchEvent(new Event('pointermove'))
+    })
 
-    // The component should handle this internally
-    expect(onDeselect).toBeDefined()
+    expect(onDeselect).toHaveBeenCalled()
   })
 
   it('applies custom topOffset', () => {
-    const { container } = render(
+    render(
       <SelectionPopover {...defaultProps} showPopover={true} topOffset={50} />,
     )
-    const popover = container.querySelector('#selectionPopover')
+    const popover = document.querySelector('#selectionPopover')
     expect(popover).toBeInTheDocument()
   })
 
   it('renders above the post sticky action bar (z-index > 10) by default', () => {
-    const { container } = render(
+    render(
       <SelectionPopover {...defaultProps} showPopover={true} />,
     )
-    const popover = container.querySelector('#selectionPopover') as HTMLElement
+    const popover = document.querySelector('#selectionPopover') as HTMLElement
     expect(Number(popover.style.zIndex)).toBeGreaterThan(10)
   })
 
   it('applies custom styles', () => {
     const customStyle = { zIndex: 999 }
-    const { container } = render(
+    render(
       <SelectionPopover
         {...defaultProps}
         showPopover={true}
         style={customStyle}
       />,
     )
-    const popover = container.querySelector('#selectionPopover') as HTMLElement
+    const popover = document.querySelector('#selectionPopover') as HTMLElement
     expect(popover).toHaveStyle({ zIndex: '999' })
   })
 
-  it('handles selection change events', async () => {
+  it('calls onSelect when a valid selection exists on pointermove', async () => {
     const onSelect = jest.fn()
     const onDeselect = jest.fn()
 
@@ -127,20 +130,18 @@ describe('SelectionPopover', () => {
       />,
     )
 
-    // Simulate selection change
     await act(async () => {
-      const event = new Event('pointermove')
       const target = document.querySelector('[data-selectable]')
-      if (target) {
-        target.dispatchEvent(event)
-      }
+      if (target) target.dispatchEvent(new Event('pointermove'))
     })
 
-    // onSelect should be called when selection exists
-    expect(onSelect).toBeDefined()
+    // With the mock selection (rangeCount=1, not collapsed, width > 0), onSelect must fire
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onDeselect).not.toHaveBeenCalled()
   })
 
-  it('handles mobile selection events', async () => {
+  it('starts interval polling for selection on selectstart (mobile)', async () => {
+    jest.useFakeTimers()
     const onSelect = jest.fn()
 
     render(
@@ -151,17 +152,19 @@ describe('SelectionPopover', () => {
       />,
     )
 
-    // Simulate mobile selection start
+    // Trigger mobile selectstart to start the 100ms polling interval
     await act(async () => {
       const target = document.querySelector('[data-selectable]')
-      if (target) {
-        const event = new Event('selectstart')
-        target.dispatchEvent(event)
-      }
+      if (target) target.dispatchEvent(new Event('selectstart'))
     })
 
-    // Should handle mobile selection
-    expect(onSelect).toBeDefined()
+    // Advance past one polling tick — selection mock is valid so onSelect fires
+    await act(async () => {
+      jest.advanceTimersByTime(150)
+    })
+
+    expect(onSelect).toHaveBeenCalled()
+    jest.useRealTimers()
   })
 
   it('clears selection when showPopover becomes false', () => {
@@ -189,7 +192,7 @@ describe('SelectionPopover', () => {
     expect(screen.queryByText('Test content')).not.toBeInTheDocument()
   })
 
-  it('handles mouse enter to expand selection', async () => {
+  it('does not alter selection or call onSelect when mouse enters the popover', async () => {
     const onSelect = jest.fn()
 
     render(
@@ -207,8 +210,7 @@ describe('SelectionPopover', () => {
       })
     }
 
-    // Should expand selection on mouse enter
-    expect(onSelect).toBeDefined()
+    expect(onSelect).not.toHaveBeenCalled()
   })
 
   it('computes popover position correctly for desktop', () => {
@@ -285,10 +287,10 @@ describe('SelectionPopover', () => {
     expect(screen.getByText('Test content')).toBeInTheDocument()
   })
 
-  it('handles collapsed selection', () => {
+  it('calls onDeselect when selection is collapsed', async () => {
     const onDeselect = jest.fn()
 
-    // Mock collapsed selection
+    // Override with a collapsed (zero-width) selection
     global.window.getSelection = jest.fn(() => {
       const mockRange = {
         getBoundingClientRect: () => ({
@@ -321,8 +323,13 @@ describe('SelectionPopover', () => {
       />,
     )
 
-    // Should handle collapsed selection
-    expect(onDeselect).toBeDefined()
+    // Trigger a selectionChange via pointermove with a collapsed selection
+    await act(async () => {
+      const target = document.querySelector('[data-selectable]')
+      if (target) target.dispatchEvent(new Event('pointermove'))
+    })
+
+    expect(onDeselect).toHaveBeenCalled()
   })
 
   it('cleans up interval on unmount', async () => {

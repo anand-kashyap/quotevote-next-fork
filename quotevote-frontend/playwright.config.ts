@@ -1,49 +1,40 @@
-import { defineConfig, devices } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
-import dotenv from 'dotenv';
+import { defineConfig, devices } from "@playwright/test";
 
-dotenv.config({ path: path.resolve(__dirname, '.env.e2e.local') });
-dotenv.config({ path: path.resolve(__dirname, '.env.local') });
-
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
-const authorStorageState = path.join(__dirname, 'e2e/.auth/authorUser.json');
+const PORT = process.env.PLAYWRIGHT_PORT || 3000;
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${PORT}`;
 
 export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: false,
+  testDir: "./e2e",
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 1,
-  timeout: 120_000,
-  expect: {
-    timeout: 15_000,
-  },
-  reporter: process.env.CI
-    ? [['github'], ['html', { open: 'never' }]]
-    : [['list'], ['html', { open: 'never' }]],
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
+  timeout: 30_000,
+
   use: {
     baseURL,
-    storageState: fs.existsSync(authorStorageState) ? authorStorageState : undefined,
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
+
   projects: [
     {
-      name: 'desktop',
-      use: { ...devices['Desktop Chrome'] },
+      name: "Desktop Chrome",
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'mobile',
-      use: { ...devices['Pixel 5'] },
+      name: "Mobile Chrome",
+      use: { ...devices["Pixel 7"] },
     },
   ],
-  globalSetup: require.resolve('./e2e/global-setup.ts'),
-  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+
+  // Spin up the Next.js dev server automatically unless one is already running
+  // (e.g. CI may start it separately, or PLAYWRIGHT_BASE_URL points elsewhere).
+  webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: 'pnpm dev',
+        command: "pnpm dev",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
