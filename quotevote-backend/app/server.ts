@@ -7,6 +7,12 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { GraphQLError } from 'graphql';
 import { solidResolvers } from './data/resolvers/solidResolvers';
+import { postsResolver } from './data/resolvers/postsResolver';
+import { userResolver } from './data/resolvers/userResolver';
+import { groupResolver } from './data/resolvers/groupResolver';
+import { chatResolver } from './data/resolvers/chatResolver';
+import { rosterResolver } from './data/resolvers/rosterResolver';
+import { quoteResolver } from './data/resolvers/quoteResolver';
 import { domainTypeDefs } from './data/types';
 import type { GraphQLContext, PubSub } from './types/graphql';
 import { requireAuth } from './data/utils/requireAuth';
@@ -51,7 +57,69 @@ async function startServer() {
         hello: String
         status: String
         solidConnectionStatus: SolidConnectionStatus
-        featuredPosts(limit: Int, offset: Int): Posts
+        featuredPosts(
+          limit: Int
+          offset: Int
+          searchKey: String
+          startDateRange: String
+          endDateRange: String
+          friendsOnly: Boolean
+          interactions: Boolean
+          userId: String
+          sortOrder: String
+          groupId: String
+          approved: Boolean
+          deleted: Boolean
+        ): Posts
+        posts(
+          limit: Int
+          offset: Int
+          searchKey: String
+          startDateRange: String
+          endDateRange: String
+          friendsOnly: Boolean
+          interactions: Boolean
+          userId: String
+          sortOrder: String
+          groupId: String
+          approved: Boolean
+        ): Posts
+        searchUser(queryName: String!): [User!]!
+        
+        # User queries
+        user(username: String!): User
+        users(limit: Int, offset: Int): [User!]!
+        getUserFollowInfo(username: String!, filter: String): JSON
+        checkDuplicateEmail(email: String!): Boolean
+        
+        # Post queries
+        post(postId: String!): Post
+        
+        # Quote queries
+        latestQuotes(limit: Int!): [Quote!]!
+        
+        # Group queries
+        group(groupId: String!): Group
+        groups(limit: Int!): [Group!]!
+        
+        # Message queries
+        messages(messageRoomId: String!): [Message!]!
+        messageRoom(otherUserId: String!): MessageRoom
+        messageRooms: [MessageRoom!]!
+        messageReactions(messageId: String!): [Reaction!]!
+        
+        # Roster / buddy queries
+        getBuddyList: [BuddyWithPresence!]!
+        getRoster: [Roster!]!
+        
+        # Action reactions
+        actionReactions(actionId: ID!): [Reaction!]!
+        
+        # Admin / reports
+        getBotReportedUsers(sortBy: String, limit: Int): [User!]!
+        
+        # Token verification
+        verifyUserPasswordResetToken(token: String!): Boolean
       }
 
       type Mutation {
@@ -103,13 +171,24 @@ async function startServer() {
         },
       },
       solidResolvers,
+      postsResolver,
+      userResolver,
+      groupResolver,
+      chatResolver,
+      rosterResolver,
+      quoteResolver,
     ],
   });
 
   await server.start();
 
   // 3. Middleware & Routes Integration
-  app.use(cors<cors.CorsRequest>());
+  app.use(
+    cors<cors.CorsRequest>({
+      origin: process.env.CLIENT_URL || 'http://localhost:3000',
+      credentials: true,
+    })
+  );
   app.use(express.json());
 
   // Auth Routes

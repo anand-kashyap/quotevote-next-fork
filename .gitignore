@@ -1,2 +1,3 @@
 quotevote-backend/compose.yml
 quotevote-backend/dockerfile
+session_state.md

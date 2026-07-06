@@ -111,7 +111,7 @@ export interface QueryResolvers {
   // User queries
   user: ResolverFn<Common.User | null, unknown, { username: string }>;
   users: ResolverFn<Common.User[], unknown, { limit?: number; offset?: number }>;
-  searchUser: ResolverFn<Common.User[], unknown, { query: string }>;
+  searchUser: ResolverFn<Common.User[], unknown, { queryName: string }>;
   getUserFollowInfo: ResolverFn<Common.User[], unknown, { username: string; filter: string }>;
   checkDuplicateEmail: ResolverFn<boolean, unknown, { email: string }>;
 

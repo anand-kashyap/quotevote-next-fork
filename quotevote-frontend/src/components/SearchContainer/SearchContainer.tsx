@@ -21,6 +21,7 @@ import SearchGuestSections from './SearchGuestSections'
 import { MOCK_POSTS } from '@/lib/mock-data'
 import type { Post, PostsListData } from '@/types/post'
 import type { UsernameSearchUser } from '@/types/components'
+import { parseSearchQuery } from '@/utils/parseSearchQuery'
 
 interface FeaturedPostsData {
   featuredPosts: {
@@ -86,12 +87,30 @@ function PostsTab({
       )
     }
     // Search with no results
+    const parsed = searchKey ? parseSearchQuery(searchKey) : null
+    let subMessage = 'Try a different search term'
+    if (parsed) {
+      const parts: string[] = []
+      if (parsed.usernames.length > 0) {
+        parts.push(`from @${parsed.usernames.join(', @')}`)
+      }
+      if (parsed.hashtags.length > 0) {
+        parts.push(`tagged with #${parsed.hashtags.join(', #')}`)
+      }
+      if (parsed.textQuery) {
+        parts.push(`matching "${parsed.textQuery}"`)
+      }
+      if (parts.length > 0) {
+        subMessage = `Could not find any posts ${parts.join(' ')}.`
+      }
+    }
+
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <SearchX className="h-12 w-12 text-muted-foreground/50 mb-4" />
         <p className="text-base font-semibold text-foreground">No posts found</p>
         <p className="text-sm text-muted-foreground mt-1">
-          Try a different search term
+          {subMessage}
         </p>
       </div>
     )
