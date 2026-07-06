@@ -91,12 +91,9 @@ jobs:
   e2e:
     name: Frontend E2E
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./quotevote-frontend
 
     steps:
-      # secrets.* is empty in job-level if: expressions — check via step env instead
+      # Run at repo root — quotevote-frontend/ does not exist until after checkout
       - name: Check E2E credentials
         id: e2e_gate
         env:
@@ -129,14 +126,17 @@ jobs:
 
       - name: Install dependencies
         if: steps.e2e_gate.outputs.enabled == 'true'
+        working-directory: ./quotevote-frontend
         run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Install Playwright browsers
         if: steps.e2e_gate.outputs.enabled == 'true'
+        working-directory: ./quotevote-frontend
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build frontend
         if: steps.e2e_gate.outputs.enabled == 'true'
+        working-directory: ./quotevote-frontend
         env:
           NEXT_PUBLIC_SERVER_URL: ${{ secrets.E2E_API_URL || 'https://api.quote.vote' }}
           NEXT_PUBLIC_GRAPHQL_ENDPOINT: ${{ secrets.E2E_GRAPHQL_ENDPOINT || 'https://api.quote.vote/graphql' }}
@@ -144,12 +144,14 @@ jobs:
 
       - name: Run Playwright tests
         if: steps.e2e_gate.outputs.enabled == 'true'
+        working-directory: ./quotevote-frontend
         env:
           CI: true
           E2E_AUTHOR_USERNAME: ${{ secrets.E2E_AUTHOR_USERNAME || 'authorUser' }}
           E2E_AUTHOR_PASSWORD: ${{ secrets.E2E_AUTHOR_PASSWORD }}
           E2E_PUBLIC_GROUP_NAME: ${{ secrets.E2E_PUBLIC_GROUP_NAME || 'QA' }}
           PLAYWRIGHT_BASE_URL: http://localhost:3000
+          PLAYWRIGHT_SKIP_WEBSERVER: true
         run: |
           pnpm start &
           pnpm exec wait-on http://localhost:3000 --timeout 120000
