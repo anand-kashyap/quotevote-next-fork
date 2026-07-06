@@ -108,7 +108,7 @@ const ChatList: React.FC<ChatListProps> = ({ search = '', filterType }) => {
       };
     } else {
       return {
-        name: room.title || 'Group Chat',
+        name: room.title || 'Discussion',
         avatar: resolveAvatar(room.avatar),
         subtitle: `${room.users?.length || 0} members`,
         isGroup: true,
@@ -209,4 +209,3 @@ const ChatList: React.FC<ChatListProps> = ({ search = '', filterType }) => {
 };
 
 export default ChatList;
-
