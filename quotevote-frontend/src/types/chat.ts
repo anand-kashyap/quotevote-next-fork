@@ -94,6 +94,7 @@ export interface ChatRoom {
         _id?: string
         title?: string | null
         text?: string | null
+        url?: string | null
     } | null
 }
 

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@apollo/client/react';
 import { MessageCircle, Users2 } from 'lucide-react';
 
 import { GET_CHAT_ROOMS } from '@/graphql/queries';
+import { toAppPostUrl } from '@/lib/utils/sanitizeUrl';
 import { useAppStore } from '@/store';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { DisplayAvatar } from '@/components/DisplayAvatar';
@@ -145,6 +147,10 @@ const ChatList: React.FC<ChatListProps> = ({ search = '', filterType }) => {
         {sortedRooms.map((room) => {
           const displayInfo = getRoomDisplayInfo(room);
           const isSelected = typeof selectedRoomId === 'string' && selectedRoomId === room._id;
+          const postHref =
+            room.messageType === 'POST' && room.postDetails?.url
+              ? toAppPostUrl(room.postDetails.url)
+              : null;
 
           const isDm = room.messageType === 'USER' && (room.users?.length ?? 0) === 2;
 
@@ -170,9 +176,24 @@ const ChatList: React.FC<ChatListProps> = ({ search = '', filterType }) => {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-semibold text-foreground">
-                      {displayInfo.name}
-                    </span>
+                    {postHref ? (
+                      <Link
+                        href={postHref}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className="truncate text-sm font-semibold text-foreground hover:underline"
+                      >
+                        {displayInfo.name}
+                      </Link>
+                    ) : (
+                      <span className="truncate text-sm font-semibold text-foreground">
+                        {displayInfo.name}
+                      </span>
+                    )}
                     <span
                       className={
                         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ' +
