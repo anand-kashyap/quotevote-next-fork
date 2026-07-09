@@ -612,6 +612,7 @@ export const GET_CHAT_ROOMS = gql`
       postDetails {
         title
         text
+        url
       }
     }
   }
